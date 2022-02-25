@@ -8,7 +8,7 @@ output: html_document
 Aesthetic mappings: x position, y position, line type, colors, transparency
 Non-aesthetic mappings: outside aes, like theme minimal, facet wrap
 
-To commit to Github:git add (file), git commit -m, git push origin main
+To commit to Github:git add (file), git commit -m "comment", git push origin main
 
 
 ```{r setup, include=FALSE}
@@ -45,7 +45,7 @@ data %>%
        y = "Number of People Enrolled",
        fill = "Sex")
 
-# OH QUESTION: How to change the labels on the legend? Using mutate (line 35) didn't work.
+# OH QUESTION: How to change the labels on the legend? Using mutate (lines 35-38) didn't work.
   
 ```
 
@@ -71,7 +71,7 @@ data%>%
       HIMCAIDNW == 2 ~ "Medicaid or CHIP"
     ))%>%
   group_by(instype)%>%
-  summarize(phys_limits = survey_total(phys_limits))%<%
+  summarize(phys_limits = survey_total(phys_limits))%>%
   summarize(instype = survey_total(instype))%>%
     ggplot+
     geom_point(mapping = aes(col = phys_limits, y = n))
@@ -96,32 +96,27 @@ data %>%
                  binwidth = .1)+
   labs(title="Number of individuals enrolled in Medicaid, by Age, in 2021", 
        caption="Source: IPUMS Micro Data",
-       x = "Age",
+       x = "Age of Medicaid Enrollee",
        y = "Number of People Enrolled (thousands)")
 
 ```
 
 
 ```{r viz #4: Columns with the number of privately insured individuals, with an overlay of points showing the number of people with ESI coverage; expecting the ESI coverage to be less but consistently track the amount for private coverage}
+
+#Note: Once the below works, add "| GRPCOVNW == 2" to filter. 
+
 data %>%
-  filter(YEAR == 2021)%>%
-  filter(PRVTCOVNW == 2 | GRPCOVNW ==2)%>%
-  summarize(sum(PRVTCOVNW))%>%
+  filter(PRVTCOVNW == 2)%>%
+  group_by(AGE)%>%
+  summarize(PRVTCOVNW = sum(PRVTCOVNW))%>%
   ggplot +
-  geom_col(mapping = aes(x = PRVTCOVNW))
+  geom_col(mapping = aes(x = AGE, y = PRVTCOVNW))
 
 ```
 
 
   geom_point(mapping = aes(x = GRPCOVNW))
-  
-```{r viz #X}
-
-ggplot(data = data, mapping = aes(x = AGE, y = DIFFMOB))+
-  geom_point()
-
-
-```
 
 ```{r}
 data %>%
