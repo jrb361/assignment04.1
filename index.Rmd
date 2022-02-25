@@ -1,0 +1,158 @@
+---
+title: "Assignment #4"
+author: "Julia Buschmann"
+date: "2/25/2022"
+output: html_document
+---
+
+Aesthetic mappings: x position, y position, line type, colors, transparency
+Non-aesthetic mappings: outside aes, like theme minimal, facet wrap
+
+To commit to Github:git add (file), git commit -m, git push origin main
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(haven)
+library(ipumsr)
+library(ggplot2)
+library(dplyr)
+library(srvyr)
+theme_set(theme_classic())
+```
+
+```{r}
+ddi <- read_ipums_ddi("cps_00002.xml")
+data <- read_ipums_micro(ddi)
+glimpse(data)
+```
+
+```{r viz #1: Looking at enrollment in Medicaid by sex for each year; six columns differentiated by sex and year}
+data %>%
+  group_by(YEAR) %>%
+  filter (HIMCAIDLY == 2) %>%
+  mutate(
+    Sex = case_when(
+      SEX == 1 ~ "Male",
+      SEX == 2 ~ "Female"
+    ))%>%
+  ggplot +
+  geom_bar(mapping = aes(x = factor(YEAR), fill = factor(SEX)), position = "dodge") +
+  labs(title="Medicaid Enrollment By Year, Differentiated By Sex", 
+       caption="Source: IPUMS Micro Data",
+       x = "Year",
+       y = "Number of People Enrolled",
+       fill = "Sex")
+
+# OH QUESTION: How to change the labels on the legend? Using mutate (line 35) didn't work.
+  
+```
+
+
+
+```{r viz #2: Scatterplot with the different types of physical difficulties, with smooth lines for insurance type, y-axis is the number of people}
+
+data%>%
+  mutate(
+    phys_limits = case_when(
+      DIFFHEAR == 2 ~ "Hearing Difficulty",
+      DIFFEYE == 2 ~ "Vision Difficulty", 
+      DIFFPHYS == 2 ~ "Physical Difficulty", 
+      DIFFMOB == 2 ~ "Disability Limiting Mobility"
+      ))%>%
+  group_by(phys_limits)%>%
+    mutate(
+    instype = case_when(
+      PRVTCOVNW == 2 ~ "Private Insurance",
+      GRPCOVNW == 2 ~ "Employer Sponsored Insurance",
+      MRKCOVNW == 2 ~ "Subsidized Marketplace Insurance",
+      HIMCARENW == 2 ~ "Medicare",
+      HIMCAIDNW == 2 ~ "Medicaid or CHIP"
+    ))%>%
+  group_by(instype)%>%
+  summarize(phys_limits = survey_total(phys_limits))%<%
+  summarize(instype = survey_total(instype))%>%
+    ggplot+
+    geom_point(mapping = aes(col = phys_limits, y = n))
+    geom_smooth(aes(x = instype))
+
+
+data
+  summarize(phys_limits = sum(phys_limits))
+  ggplot+
+    geom_point(mapping = aes(col = phys_limits))+
+    geom_smooth(method = "loess", se=F)
+
+
+```
+
+```{r viz #3: A histogram demonstrating the age of Medicaid enrollees. Unsurprisingly, we see that the majority of enrollees are younger than 18. More than half of all births in the US are among Medicaid enrollees, and in some states, kids at certain income levels are eligible (via CHIP) when their parents may not be.}
+data %>%
+  filter(YEAR == 2021) %>%
+  filter(HIMCAIDLY == 2) %>%
+  ggplot +
+  geom_histogram(aes(x = AGE), 
+                 binwidth = .1)+
+  labs(title="Number of individuals enrolled in Medicaid, by Age, in 2021", 
+       caption="Source: IPUMS Micro Data",
+       x = "Age",
+       y = "Number of People Enrolled (thousands)")
+
+```
+
+
+```{r viz #4: Columns with the number of privately insured individuals, with an overlay of points showing the number of people with ESI coverage; expecting the ESI coverage to be less but consistently track the amount for private coverage}
+data %>%
+  filter(YEAR == 2021)%>%
+  filter(PRVTCOVNW == 2 | GRPCOVNW ==2)%>%
+  summarize(sum(PRVTCOVNW))%>%
+  ggplot +
+  geom_col(mapping = aes(x = PRVTCOVNW))
+
+```
+
+
+  geom_point(mapping = aes(x = GRPCOVNW))
+  
+```{r viz #X}
+
+ggplot(data = data, mapping = aes(x = AGE, y = DIFFMOB))+
+  geom_point()
+
+
+```
+
+```{r}
+data %>%
+  filter(YEAR == 2021) %>%
+  mutate(
+    phys_limits = case_when(
+      DIFFHEAR == 2 ~ "Hearing Difficulty",
+      DIFFEYE == 2 ~ "Vision Difficulty", 
+      DIFFPHYS == 2 ~ "Physical Difficulty", 
+      DIFFMOB == 2 ~ "Disability Limiting Mobility"
+      ))%>%
+  group_by(phys_limits)
+# The above works, but how to get a summary? summarise(survey_prop()) doesn't work
+
+#Noting for below, insurance type is only available for march 2019, 2020, and 2021
+data%>%
+  mutate(
+    instype = case_when(
+      PRVTCOVNW == 2 ~ "Private Insurance",
+      GRPCOVNW == 2 ~ "Employer Sponsored Insurance",
+      MRKCOVNW == 2 ~ "Subsidized Marketplace Insurance",
+      HIMCARENW == 2 ~ "Medicare",
+      HIMCAIDNW == 2 ~ "Medicaid or CHIP"
+    ))%>%
+  group_by(instype)
+
+data%>%
+  ggplot(data = data, aes(x=EMPSTAT))+
+  geom_point(aes(col = EMPSTAT))+
+  geom_smooth(method="loess")
+
+
+```
+
