@@ -7,6 +7,8 @@ urlcolor: blue
 source: https://usa.ipums.org/usa-action/data_requests/download
 ---
 
+Github url: https://github.com/jrb361/assignment04.1.git
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
