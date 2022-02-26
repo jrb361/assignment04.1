@@ -1,7 +1,7 @@
 ---
 title: "Assignment #4"
-author: "Julia Buschmann"
-date: "2/25/2022"
+author: "Julia Buschmann | jrb361"
+date: "2/26/2022"
 output: pdf_document
 urlcolor: blue
 source: https://usa.ipums.org/usa-action/data_requests/download
@@ -12,14 +12,21 @@ Non-aesthetic mappings: outside aes, like theme minimal, facet wrap
 
 To commit to Github:git add (file), git commit -m "comment", git push origin main
 
-```{r include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(message = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
-
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r include = FALSE}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+```
+
+```{r}
 library(tidyverse)
 library(haven)
 library(ipumsr)
@@ -28,31 +35,18 @@ library(dplyr)
 library(srvyr)
 library(grid)
 theme_set(theme_classic())
-
-def.chunk.hook  <- knitr::knit_hooks$get("chunk")
-knitr::knit_hooks$set(chunk = function(x, options) {
-  x <- def.chunk.hook(x, options)
-  ifelse(options$size != "normalsize", paste0("\n \\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
-})
 ```
 
-\begin{center}
-\Huge{PPOL 670 | Assignment 3}
 
-\Huge{Applied Introduction to R's Tidyverse}
-\end{center}
-
-\vspace{0.1in}
-
-```{r}
+```{r, results = 'hide'}
 ddi <- read_ipums_ddi("cps_00002.xml")
 data <- read_ipums_micro(ddi)
 ```
 
-\newpage
 
-# Visualization #1
-### The below graph depicts the enrollment in Medicaid, differentiated by sex, for years 2016 through 2021. 
+### Visualization #1
+The below graph depicts the enrollment in Medicaid, differentiated by sex, for years 2016 through 2021. In each year, more women than men are enrolled in Medicaid, which could occur for a few reasons. Many states have family planning "demonstrations" which create a new eligibility group so women that are above the normal income limit for Medicaid can access contraception, exams, and fertility preservation services. Further, all states allow for income-eligible pregnant women to enroll in Medicaid (though their income limits differ dramatically, from 30% FPL to 138% FPL). Moreover, women typically work lower paying jobs than men, meaning that there are more likely to be eligible for Medicaid in all states. 
+
 ```{r}
 data %>%
   group_by(YEAR) %>%
@@ -73,46 +67,8 @@ data %>%
 
 \newpage
 
-# Visualization #2
-### Scatterplot with the different types of physical difficulties, with smooth lines for insurance type, y-axis is the number of people
-```{r eval = FALSE}
-data%>%
-  filter(YEAR == 2021)%>%
-  mutate(
-    month = case_when(
-      MONTH == 1 ~ "January",
-      MONTH == 2 ~ "February",
-      MONTH == 3 ~ "March", 
-      MONTH == 4 ~ "April",
-      MONTH == 5 ~ "May",
-      MONTH == 6 ~ "June",
-      MONTH == 7 ~ "July",
-      MONTH == 8 ~ "August", 
-      MONTH == 9 ~ "September", 
-      MONTH == 10 ~ "October", 
-      MONTH == 11 ~ "November",
-      MONTH == 12 ~ "December"
-    ))%>%
-  mutate(
-    instype = case_when(
-      PRVTCOVNW == 2 ~ "Private Insurance",
-      GRPCOVNW == 2 ~ "Employer Sponsored Insurance",
-      MRKCOVNW == 2 ~ "Subsidized Marketplace Insurance",
-      HIMCARENW == 2 ~ "Medicare",
-      HIMCAIDNW == 2 ~ "Medicaid or CHIP"
-    ))%>%
-  summarize(instype = n())%>%
-  group_by(instype)%>%
-    ggplot(aes(x = month)) +
-    geom_smooth(mapping = aes(y = instype))+
-    labs(title = "Prevelance of Different Types of Health Insurance in 2021")+
-
-```
-
-\newpage
-
-#Visualization #3
-### A histogram demonstrating the age of Medicaid enrollees. Unsurprisingly, we see that the majority of enrollees are younger than 18. More than half of all births in the US are among Medicaid enrollees, and in some states, kids at certain income levels are eligible (via CHIP) when their parents may not be.
+### Visualization #2
+A histogram demonstrating the age of Medicaid enrollees. Unsurprisingly, we see that the majority of enrollees are younger than 18. More than half of all births in the US are among Medicaid enrollees, and in some states, kids at certain income levels are eligible for various programs (e.g., the Children's Health Insurance Program) when their parents may not be.
 ```{r}
 data %>%
   filter(YEAR == 2021) %>%
@@ -122,7 +78,7 @@ data %>%
   geom_histogram(aes(x = AGE), 
                  binwidth = .1)+
   labs(title="Number of individuals enrolled in Medicaid, by Age, in 2021", 
-       subtitle = "Due to coding methods, an accurate count of individual 80 years and older is not available. 
+       subtitle = "Due to coding methods, an accurate count of individuals 80 years and older is not available. 
        They have been excluded from the below graph.",
        caption="Source: IPUMS Micro Data",
        x = "Age of Medicaid Enrollee",
@@ -132,10 +88,14 @@ data %>%
 
 \newpage 
 
-# Visualization #4
-### Columns with the number of privately insured individuals, with an overlay of points showing the number of people with ESI coverage; expecting the ESI coverage to be less but consistently track the amount for private coverage
-```{r eval = FALSE}
+### Visualization #3
+The below visualization demonstrates enrollment in private insurance, and the purchase of marketplace plans, varies by age. There is a steep increase in private coverage, and marketplace plans, among 19 to 20 year olds that declines around age 25 or 26. This could indicate 
+
+Unsurprisingly, enrollment in employer-sponsored insurance tracks closely with enrollment in private insurance. The difference between the two indicates that individuals are purchasing other sources of private insurance, such as the health insurance marketplace.
+
+```{r}
 data %>%
+  filter(OFFPOV == 01)%>%
   filter(YEAR == 2021)%>%
   filter(PRVTCOVNW == 2 | GRPCOVNW == 2)%>%
   filter(AGE <= 79)%>%
@@ -143,12 +103,64 @@ data %>%
   summarize(PRVTCOVNW = sum(PRVTCOVNW), GRPCOVNW = sum(GRPCOVNW))%>%
   ggplot +
   geom_col(mapping = aes(x = AGE, y = PRVTCOVNW, fill = "skyblue"))+
-  labs(title="Number of Individuals Enrolled in Private Coverage, by Age, in 2021", 
-       subtitle = "55",
+  labs(title = "Enrollment in Private Health Insurance and Employer-Sponsored Insurance, 
+       by Age, in 2021", 
+       subtitle = "This graph includes",
        caption="Source: IPUMS Micro Data",
        x = "Age of Policy Holder",
-       y = "Number of Individuals with Private Insurance (thousands)") +
-  geom_point(mapping = aes(x = AGE, y = GRPCOVNW))
+       y = "Number of Individuals (thousands)") +
+  geom_point(mapping = aes(x = AGE, y = GRPCOVNW, fill = "black"))
+
+```
+
+\newpage
+
+### Visualization #4
+The below visualization demonstrates the how type of insurance coverage varied throughout 2021. 
+
+```{r}
+data%>%
+  filter(EMPSTAT == 21)%>%
+  filter(YEAR == 2021)%>%
+  mutate(
+    month = case_when(
+      MONTH == 01 ~ "January",
+      MONTH == 02 ~ "February",
+      MONTH == 03 ~ "March", 
+      MONTH == 04 ~ "April",
+      MONTH == 05 ~ "May",
+      MONTH == 06 ~ "June",
+      MONTH == 07 ~ "July",
+      MONTH == 08 ~ "August", 
+      MONTH == 09 ~ "September", 
+      MONTH == 10 ~ "October", 
+      MONTH == 11 ~ "November",
+      MONTH == 12 ~ "December"
+    ))%>%
+  mutate(month = ordered(month, levels = unique(month))) %>%
+  mutate(
+    Race = case_when(
+      RACE == 100 ~ "White",
+      RACE == 200 ~ "Black",
+      RACE == 300 ~ "American Indian/Alaska Native",
+      RACE == 650 ~ "Asian/Pacific Islander",
+      RACE == 651 ~ "Asian",
+      RACE >= 801 & RACE <= 830 ~ "Two or More Races"
+    ))%>%
+  group_by(month, Race)%>%
+  summarize(n = n())%>%
+  ggplot +
+  geom_point(mapping = aes(x = month, y = n, fill = Race, color = Race))+
+  labs(title = "The Demographics of Unemployment in 2021", 
+       subtitle = "The below graph shows the unemployment rate of experienced workers. New workers 
+       also experienced a high rate of unemployment, with a similar demographic trend as 
+       experienced workers.",
+       x = "Month",
+       y = "Number of Individuals (thousands)", 
+       caption = "Source: IPUMS Micro Data")+
+  geom_smooth(method = lm, se = FALSE, aes(x = month, y = n, color = Race))+
+  geom_line(mapping = aes(x = month, y = n, fill = Race, color = Race))+
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1))
 
 ```
 
