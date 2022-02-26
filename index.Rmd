@@ -7,7 +7,7 @@ urlcolor: blue
 source: https://usa.ipums.org/usa-action/data_requests/download
 ---
 
-Github url: https://github.com/jrb361/assignment04.1.git
+Github URL: https://github.com/jrb361/assignment04.1.git
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message = FALSE)
@@ -40,6 +40,8 @@ theme_set(theme_classic())
 ddi <- read_ipums_ddi("cps_00002.xml")
 data <- read_ipums_micro(ddi)
 ```
+
+
 
 
 ### Visualization #1
@@ -76,8 +78,8 @@ data %>%
   geom_histogram(aes(x = AGE), 
                  binwidth = .1)+
   labs(title="Number of individuals enrolled in Medicaid, by Age, in 2021", 
-       subtitle = "Due to coding methods, an accurate count of individuals 80 years and older is not available. 
-       They have been excluded from the below graph.",
+       subtitle = "Due to coding methods, an accurate count of individuals 80 years and older is not 
+       available. They have been excluded from the below graph.",
        caption="Source: IPUMS Micro Data",
        x = "Age of Medicaid Enrollee",
        y = "Number of People Enrolled (thousands)")+
@@ -88,7 +90,7 @@ data %>%
 \newpage 
 
 ### Visualization #3
-The below visualization demonstrates enrollment in private insurance, and the purchase of marketplace plans, varies by age. Unsurprisingly, enrollment in employer-sponsored insurance tracks closely with enrollment in private insurance. The difference between the two indicates that individuals are purchasing insurance from other sources, such as the health insurance marketplace. Here, we see a decline in private coverage and ESI around age 18, which could indicate that young adults are no longer covered under their parents' health insurance, which then picks up around age 25. We also see a steep decline at age 65, as people typically become eligible for Medicare at that age and may discontinue their ESI policy.
+The below visualization demonstrates how enrollment in private insurance, and the purchase of marketplace plans, varies by age. Unsurprisingly, enrollment in employer-sponsored insurance tracks closely with enrollment in private insurance. The difference between the two indicates that individuals are purchasing insurance from other sources, such as the health insurance marketplace. Here, we see a decline in private coverage and ESI around age 18, which could indicate that young adults lose eligibility for coverage under their parents' health insurance. Private insurance coverage then picks up around age 25, which may be when they have purchased their own or are enrolled in ESI. We also see a steep decline at age 65, as people typically become eligible for Medicare at that age and may discontinue their private insurance or ESI policy.
 
 ```{r}
 data %>%
@@ -114,7 +116,7 @@ data %>%
 \newpage
 
 ### Visualization #4
-The below visualization shows the the number of experienced workers that were unemployed during 2021, distinguished by race. The uptick that occurred in March of 2021 could represent a sharp increase in unemployment as a product of the American Rescue Plan that was passed in February 2021, which included extended unemployment benefits. However, this sharp incline more likely occurred because of disaggregated survey results and the inclusion of an annual survey that takes place in March. (Note: I attempted to exclude the annual March survey, but all data points were affected.)
+The below visualization shows the the number of experienced workers that were unemployed during 2021, distinguished by race. The uptick that occurred in March of 2021 could represent a sharp increase in unemployment as a product of the American Rescue Plan that was passed in February 2021, which included extended unemployment benefits. However, this sharp incline more likely occurred because of disaggregated survey results and the inclusion of an annual survey that takes place in March. (Note: I attempted to exclude the annual March survey, but all data points were adversely affected.)
 
 ```{r}
 data%>%
